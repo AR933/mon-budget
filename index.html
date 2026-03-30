@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mon Budget</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== EN-TÊTE ===== -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <span class="header-icon">💰</span>
+        <h1 class="header-title">Mon Budget</h1>
+      </div>
+      <button class="btn btn-primary" id="btn-open-modal">+ Ajouter une transaction</button>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- ===== TABLEAU DE BORD ===== -->
+    <section class="dashboard">
+      <div class="card card--balance">
+        <p class="card-label">Solde actuel</p>
+        <p class="card-value" id="solde">0,00 €</p>
+      </div>
+      <div class="card card--revenus">
+        <p class="card-label">Total revenus</p>
+        <p class="card-value" id="total-revenus">0,00 €</p>
+      </div>
+      <div class="card card--depenses">
+        <p class="card-label">Total dépenses</p>
+        <p class="card-value" id="total-depenses">0,00 €</p>
+      </div>
+    </section>
+
+    <!-- ===== GRAPHIQUE ===== -->
+    <section class="chart-section card">
+      <h2 class="section-title">Répartition des dépenses</h2>
+      <div class="chart-wrapper">
+        <canvas id="chart" width="260" height="260"></canvas>
+        <div class="chart-legend" id="chart-legend"></div>
+      </div>
+      <p class="chart-empty" id="chart-empty">Aucune dépense enregistrée.</p>
+    </section>
+
+    <!-- ===== HISTORIQUE ===== -->
+    <section class="history-section card">
+      <div class="history-header">
+        <h2 class="section-title">Historique des transactions</h2>
+        <button class="btn btn-ghost" id="btn-reset-filters">Réinitialiser</button>
+      </div>
+
+      <!-- Filtres -->
+      <div class="filters">
+        <div class="filter-group">
+          <label for="filter-type">Type</label>
+          <select id="filter-type">
+            <option value="">Tous</option>
+            <option value="revenu">Revenus</option>
+            <option value="dépense">Dépenses</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-categorie">Catégorie</label>
+          <select id="filter-categorie">
+            <option value="">Toutes</option>
+            <option value="Alimentation">Alimentation</option>
+            <option value="Logement">Logement</option>
+            <option value="Transport">Transport</option>
+            <option value="Loisirs">Loisirs</option>
+            <option value="Santé">Santé</option>
+            <option value="Autres">Autres</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-periode">Période</label>
+          <input type="month" id="filter-periode" />
+        </div>
+      </div>
+
+      <!-- Tableau -->
+      <div class="table-wrapper">
+        <table class="table" id="table-transactions">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Catégorie</th>
+              <th>Montant</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody-transactions">
+            <!-- rempli par JS -->
+          </tbody>
+        </table>
+        <p class="table-empty" id="table-empty">Aucune transaction trouvée.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== MODAL — AJOUTER UNE TRANSACTION ===== -->
+  <dialog class="modal" id="modal">
+    <div class="modal-inner">
+      <div class="modal-header">
+        <h2 class="modal-title">Nouvelle transaction</h2>
+        <button class="modal-close" id="btn-close-modal" aria-label="Fermer">&times;</button>
+      </div>
+
+      <form class="form" id="form-transaction" novalidate>
+
+        <div class="form-row form-row--two">
+          <!-- Type -->
+          <div class="form-group">
+            <label for="input-type">Type <span class="required">*</span></label>
+            <select id="input-type" required>
+              <option value="revenu">Revenu</option>
+              <option value="dépense">Dépense</option>
+            </select>
+          </div>
+
+          <!-- Montant -->
+          <div class="form-group">
+            <label for="input-montant">Montant (€) <span class="required">*</span></label>
+            <input type="number" id="input-montant" min="0.01" step="0.01" placeholder="0,00" required />
+          </div>
+        </div>
+
+        <div class="form-row form-row--two">
+          <!-- Catégorie -->
+          <div class="form-group">
+            <label for="input-categorie">Catégorie <span class="required">*</span></label>
+            <select id="input-categorie" required>
+              <option value="Alimentation">Alimentation</option>
+              <option value="Logement">Logement</option>
+              <option value="Transport">Transport</option>
+              <option value="Loisirs">Loisirs</option>
+              <option value="Santé">Santé</option>
+              <option value="Autres">Autres</option>
+            </select>
+          </div>
+
+          <!-- Date -->
+          <div class="form-group">
+            <label for="input-date">Date <span class="required">*</span></label>
+            <input type="date" id="input-date" required />
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label for="input-description">Description</label>
+          <input type="text" id="input-description" placeholder="Ex : Courses, Loyer…" maxlength="100" />
+        </div>
+
+        <p class="form-error" id="form-error" hidden></p>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" id="btn-annuler">Annuler</button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+
+      </form>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
