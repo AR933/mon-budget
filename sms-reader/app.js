@@ -215,150 +215,152 @@
         return ctx;
     }
 
-    // Génère des réponses contextuelles et naturelles
+    // Génère des réponses contextuelles, naturelles et élaborées
     function generateResponses(intents, context) {
         var responses = [];
         var when = context.when || '';
         var activity = context.activity || '';
         var amount = context.amount || '';
         var time = context.time || '';
+        var whenText = when ? ' ' + when : '';
+        var whenCap = when ? when.charAt(0).toUpperCase() + when.slice(1) : '';
 
         for (var i = 0; i < intents.length; i++) {
             var intent = intents[i];
 
             if (intent === 'invitation') {
                 if (isBusy) {
-                    responses.push({ text: 'Ah dommage, je suis pris(e)' + (when ? ' ' + when : '') + '. On remet ça ?', tag: 'Occupé - décline', tagClass: 'tag-busy' });
-                    responses.push({ text: 'J\'aurais bien aimé mais je ne suis pas dispo' + (when ? ' ' + when : '') + '. La prochaine fois !', tag: 'Occupé - poli', tagClass: 'tag-busy' });
-                    responses.push({ text: 'Pas possible pour moi, désolé(e) ! Tu me redis quand tu refais ça.', tag: 'Occupé - court', tagClass: 'tag-busy' });
+                    responses.push({ text: 'Ah c\'est vraiment dommage, j\'aurais adoré mais je suis pris(e)' + whenText + '. J\'ai pas mal de trucs en cours en ce moment. Mais on remet ça très vite, ça me ferait vraiment plaisir !', tag: 'Occupé - chaleureux', tagClass: 'tag-busy' });
+                    responses.push({ text: 'Merci pour l\'invitation, c\'est super gentil ! Malheureusement je ne suis pas disponible' + whenText + ', j\'ai un emploi du temps un peu chargé ces temps-ci. On se replanifie ça dès que je me libère ?', tag: 'Occupé - poli', tagClass: 'tag-busy' });
+                    responses.push({ text: 'Oh non, pas possible pour moi' + whenText + ', je suis déjà pris(e). C\'est frustrant parce que ça m\'aurait vraiment fait plaisir. Tu me recontactes la prochaine fois que tu organises quelque chose ?', tag: 'Occupé - expressif', tagClass: 'tag-busy' });
                 } else {
-                    responses.push({ text: 'Carrément, ça me dit bien !' + (when ? ' ' + when.charAt(0).toUpperCase() + when.slice(1) + ' ça me va.' : ' Dis-moi quand.'), tag: 'Enthousiaste', tagClass: 'tag-casual' });
-                    responses.push({ text: 'Avec plaisir !' + (activity ? ' ' + activity.charAt(0).toUpperCase() + activity.slice(1) + ', bonne idée.' : '') + (when ? ' ' + when.charAt(0).toUpperCase() + when.slice(1) + ' c\'est parfait.' : ' Tu proposes quand ?'), tag: 'Partant', tagClass: 'tag-casual' });
-                    responses.push({ text: 'Pourquoi pas ! Faut que je vérifie' + (when ? ' pour ' + when : '') + ' mais a priori c\'est bon.', tag: 'Prudent', tagClass: 'tag-formal' });
-                    responses.push({ text: 'Bonne idée ! C\'est où et à quelle heure ?', tag: 'Direct', tagClass: 'tag-short' });
+                    responses.push({ text: 'Carrément, ça me dit trop bien !' + (activity ? ' ' + activity.charAt(0).toUpperCase() + activity.slice(1) + ', c\'est une super idée.' : '') + (when ? ' ' + whenCap + ' ça me va parfaitement.' : ' Dis-moi quand ça t\'arrange, je m\'organise.') + ' Hâte d\'y être !', tag: 'Enthousiaste', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Avec grand plaisir !' + (activity ? ' Ça fait longtemps qu\'on n\'a pas fait ça ensemble, ' + activity + ' c\'est une excellente idée.' : ' Ça fait plaisir de se retrouver.') + (when ? ' ' + whenCap + ' c\'est parfait pour moi.' : '') + ' Tu as un endroit en tête ou on choisit ensemble ?', tag: 'Partant', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Pourquoi pas, c\'est tentant ! Faut que je vérifie mon planning' + (when ? ' pour ' + when : '') + ' mais a priori ça devrait le faire. Je te confirme dans la journée, mais garde-moi une place !', tag: 'Prudent', tagClass: 'tag-formal' });
+                    responses.push({ text: 'Trop bien comme idée ! Je suis partant(e) à 100%.' + (when ? ' ' + whenCap + ', c\'est noté.' : '') + ' Dis-moi juste l\'heure et le lieu et je serai là. On est combien au total ?', tag: 'Motivé', tagClass: 'tag-casual' });
                 }
             }
 
             if (intent === 'logistics') {
                 if (isBusy) {
-                    responses.push({ text: 'Je regarde et je te confirme dès que je suis dispo.', tag: 'Occupé', tagClass: 'tag-busy' });
+                    responses.push({ text: 'Je suis en plein truc là, je regarde mon planning dès que j\'ai une minute et je te confirme le créneau qui m\'arrange. Désolé(e) pour l\'attente !', tag: 'Occupé', tagClass: 'tag-busy' });
                 } else {
                     if (time) {
-                        responses.push({ text: 'OK pour ' + time + ', ça me va !', tag: 'Confirme', tagClass: 'tag-short' });
-                        responses.push({ text: time + ' c\'est parfait pour moi. On se retrouve où ?', tag: 'Confirme + question', tagClass: 'tag-casual' });
+                        responses.push({ text: 'OK ' + time + ', ça me convient parfaitement ! Je serai là à l\'heure. On se retrouve où exactement ? Envoie-moi l\'adresse si tu peux.', tag: 'Confirme', tagClass: 'tag-casual' });
+                        responses.push({ text: time + ' c\'est nickel pour moi, je bloque le créneau. Tu veux qu\'on se retrouve directement sur place ou on fait le trajet ensemble ?', tag: 'Organisé', tagClass: 'tag-formal' });
                     } else {
-                        responses.push({ text: 'Moi je suis flexible, dis-moi ce qui t\'arrange.', tag: 'Souple', tagClass: 'tag-casual' });
-                        responses.push({ text: 'Je te laisse choisir, ça m\'ira.', tag: 'Court', tagClass: 'tag-short' });
+                        responses.push({ text: 'Moi je suis assez flexible niveau horaires, donc propose-moi ce qui t\'arrange le mieux et je m\'adapterai. En fin de journée ou plutôt en soirée, les deux me vont.', tag: 'Souple', tagClass: 'tag-casual' });
+                        responses.push({ text: 'Je te laisse choisir le créneau qui te convient, ça m\'ira. Essaie juste de me prévenir un peu à l\'avance que je puisse m\'organiser de mon côté.', tag: 'Arrangeant', tagClass: 'tag-formal' });
                     }
                 }
             }
 
             if (intent === 'favor') {
                 if (isBusy) {
-                    responses.push({ text: 'Je suis un peu débordé(e) là, je peux regarder ça plus tard ?', tag: 'Occupé - reporte', tagClass: 'tag-busy' });
-                    responses.push({ text: 'Pas dispo tout de suite mais je n\'oublie pas, je te reviens là-dessus.', tag: 'Occupé - promesse', tagClass: 'tag-busy' });
+                    responses.push({ text: 'Je voudrais vraiment t\'aider mais je suis un peu sous l\'eau en ce moment. Est-ce que ça peut attendre un peu ? Je m\'en occupe dès que je me libère, promis !', tag: 'Occupé - bienveillant', tagClass: 'tag-busy' });
+                    responses.push({ text: 'Ah, je suis pas dispo tout de suite malheureusement. Mais je n\'oublie pas, note-le moi et je te reviens là-dessus dès que possible. C\'est urgent ou ça peut attendre un peu ?', tag: 'Occupé - attentionné', tagClass: 'tag-busy' });
                 } else {
-                    responses.push({ text: 'Bien sûr, dis-moi exactement ce qu\'il te faut.', tag: 'Serviable', tagClass: 'tag-formal' });
-                    responses.push({ text: 'Oui pas de souci ! C\'est quoi exactement ?', tag: 'Décontracté', tagClass: 'tag-casual' });
-                    responses.push({ text: 'Ça dépend de quoi il s\'agit, explique-moi ?', tag: 'Prudent', tagClass: 'tag-formal' });
+                    responses.push({ text: 'Bien sûr, avec plaisir ! Dis-moi exactement ce qu\'il te faut et comment je peux t\'aider au mieux. N\'hésite pas à me donner tous les détails, comme ça je fais les choses bien.', tag: 'Serviable', tagClass: 'tag-formal' });
+                    responses.push({ text: 'Oui pas de souci, je suis là pour ça ! Explique-moi ce que tu as besoin exactement et je vois ce que je peux faire. C\'est pour quand idéalement ?', tag: 'Décontracté', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Ça dépend un peu de ce que c\'est, mais a priori oui ! Explique-moi la situation en détail et je te dis si je peux t\'aider et comment on s\'organise.', tag: 'Prudent', tagClass: 'tag-formal' });
                 }
             }
 
             if (intent === 'urgent') {
                 if (isBusy) {
-                    responses.push({ text: 'J\'ai vu, je fais au plus vite même si je suis en plein truc.', tag: 'Occupé - prioritaire', tagClass: 'tag-busy' });
-                    responses.push({ text: 'C\'est noté. Je ne peux pas là tout de suite mais je m\'en occupe dès que possible.', tag: 'Occupé - honnête', tagClass: 'tag-busy' });
+                    responses.push({ text: 'J\'ai bien vu ton message et je comprends que c\'est urgent. Je suis en plein truc mais je fais mon maximum pour m\'en occuper le plus rapidement possible. Je te tiens au courant dès que j\'avance.', tag: 'Occupé - prioritaire', tagClass: 'tag-busy' });
+                    responses.push({ text: 'C\'est noté, j\'ai compris l\'urgence. Je ne peux pas tout lâcher là tout de suite mais c\'est en haut de ma liste de priorités. Je reviens vers toi dans les plus brefs délais.', tag: 'Occupé - honnête', tagClass: 'tag-busy' });
                 } else {
-                    responses.push({ text: 'OK j\'ai vu, je m\'en occupe tout de suite.', tag: 'Réactif', tagClass: 'tag-short' });
-                    responses.push({ text: 'Je suis dessus. Je te tiens au courant.', tag: 'Pro', tagClass: 'tag-formal' });
-                    responses.push({ text: 'Reçu ! T\'inquiète, je gère.', tag: 'Rassurant', tagClass: 'tag-casual' });
+                    responses.push({ text: 'OK j\'ai vu ton message, je m\'en occupe immédiatement. Ne t\'inquiète pas, je te tiens au courant de l\'avancement dès que j\'ai du nouveau. On va régler ça.', tag: 'Réactif', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Je suis dessus tout de suite. Je comprends que c\'est important et je fais le nécessaire. Je te recontacte dès que c\'est réglé ou si j\'ai besoin d\'infos complémentaires.', tag: 'Pro', tagClass: 'tag-formal' });
+                    responses.push({ text: 'Reçu 5 sur 5 ! T\'inquiète pas, je gère ça en priorité. Je te fais un retour très rapidement. Si entre-temps tu as d\'autres infos, n\'hésite pas à m\'envoyer.', tag: 'Rassurant', tagClass: 'tag-casual' });
                 }
             }
 
             if (intent === 'howAreYou') {
                 if (isBusy) {
-                    responses.push({ text: 'Ça va mais bien occupé(e) ! Je te rappelle quand je souffle un peu.', tag: 'Occupé', tagClass: 'tag-busy' });
-                    responses.push({ text: 'La forme mais speed ! On se reparle vite.', tag: 'Occupé - court', tagClass: 'tag-busy' });
+                    responses.push({ text: 'Ça va bien merci, mais je suis pas mal occupé(e) en ce moment ! J\'ai beaucoup de choses en cours. Je te rappelle ou je t\'écris dès que je souffle un peu, on pourra discuter tranquillement.', tag: 'Occupé', tagClass: 'tag-busy' });
+                    responses.push({ text: 'La forme, merci de prendre des nouvelles ! Par contre je suis un peu speed là, je peux pas trop discuter. On se reparle très vite, j\'ai plein de trucs à te raconter !', tag: 'Occupé - amical', tagClass: 'tag-busy' });
                 } else {
-                    responses.push({ text: 'Ça va super, et toi ? Quoi de neuf ?', tag: 'Enthousiaste', tagClass: 'tag-casual' });
-                    responses.push({ text: 'Tranquille ! Et toi, tout roule ?', tag: 'Décontracté', tagClass: 'tag-casual' });
-                    responses.push({ text: 'Très bien merci ! Content(e) d\'avoir de tes nouvelles.', tag: 'Chaleureux', tagClass: 'tag-formal' });
+                    responses.push({ text: 'Ça va super bien, merci de demander ! Et toi, comment tu vas ? Ça fait un moment qu\'on ne s\'est pas parlé, raconte-moi un peu ce que tu deviens, quoi de neuf dans ta vie ?', tag: 'Enthousiaste', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Tranquille, tout roule de mon côté ! Et toi alors, la forme ? J\'espère que tout va bien pour toi. On devrait se voir un de ces jours pour se raconter tout ça autour d\'un café.', tag: 'Décontracté', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Très bien merci, c\'est gentil ! Je suis vraiment content(e) d\'avoir de tes nouvelles. De mon côté tout se passe bien. Et toi, quoi de beau ? Comment va la famille ?', tag: 'Chaleureux', tagClass: 'tag-formal' });
                 }
             }
 
             if (intent === 'thanks') {
                 if (isBusy) {
-                    responses.push({ text: 'De rien !', tag: 'Court', tagClass: 'tag-busy' });
+                    responses.push({ text: 'Mais de rien, c\'est tout à fait normal ! Ça m\'a fait plaisir de pouvoir t\'aider. Si tu as besoin d\'autre chose n\'hésite surtout pas.', tag: 'Occupé - gentil', tagClass: 'tag-busy' });
                 } else {
-                    responses.push({ text: 'Avec plaisir ! N\'hésite pas si t\'as besoin.', tag: 'Généreux', tagClass: 'tag-casual' });
-                    responses.push({ text: 'De rien, c\'est normal !', tag: 'Simple', tagClass: 'tag-short' });
-                    responses.push({ text: 'Pas de quoi, ça m\'a fait plaisir.', tag: 'Chaleureux', tagClass: 'tag-formal' });
+                    responses.push({ text: 'Avec plaisir, vraiment ! C\'est tout à fait normal, je suis content(e) d\'avoir pu t\'aider. N\'hésite surtout pas si tu as besoin de quoi que ce soit d\'autre, je suis là.', tag: 'Généreux', tagClass: 'tag-casual' });
+                    responses.push({ text: 'De rien du tout, c\'est bien normal ! Ça me fait toujours plaisir de rendre service. Tu sais que tu peux compter sur moi quand tu veux.', tag: 'Chaleureux', tagClass: 'tag-formal' });
+                    responses.push({ text: 'Pas de quoi, ça m\'a fait plaisir ! C\'est toujours un plaisir de donner un coup de main. La prochaine fois que t\'as besoin, fais-moi signe sans hésiter.', tag: 'Amical', tagClass: 'tag-casual' });
                 }
             }
 
             if (intent === 'confirmation') {
                 if (isBusy) {
-                    responses.push({ text: '👍', tag: 'Emoji', tagClass: 'tag-busy' });
+                    responses.push({ text: 'Parfait, c\'est bien noté de mon côté ! Merci pour la confirmation, ça me rassure. On se tient au courant si jamais il y a un changement.', tag: 'Occupé', tagClass: 'tag-busy' });
                 } else {
-                    responses.push({ text: 'Parfait, c\'est noté !', tag: 'Court', tagClass: 'tag-short' });
-                    responses.push({ text: 'Top, à ' + (when || 'bientôt') + ' alors !', tag: 'Enthousiaste', tagClass: 'tag-casual' });
-                    responses.push({ text: 'Super, hâte d\'y être !', tag: 'Content', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Super, c\'est parfait alors ! C\'est noté de mon côté.' + (when ? ' Vivement ' + when + ', ça va être chouette !' : ' J\'ai hâte, à très vite !'), tag: 'Enthousiaste', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Top, merci pour la confirmation ! Ça fait plaisir que ça se mette en place. On se retrouve comme prévu' + (when ? ' ' + when : '') + ', j\'ai vraiment hâte d\'y être.', tag: 'Content', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Excellent, c\'est validé alors ! Je mets ça dans mon agenda. Si jamais il y a le moindre changement, n\'hésite pas à me prévenir. À ' + (when || 'bientôt') + ' !', tag: 'Organisé', tagClass: 'tag-formal' });
                 }
             }
 
             if (intent === 'apology') {
                 if (isBusy) {
-                    responses.push({ text: 'T\'inquiète, c\'est pas grave.', tag: 'Court', tagClass: 'tag-busy' });
+                    responses.push({ text: 'T\'inquiète pas du tout, c\'est vraiment pas grave. Ça arrive à tout le monde, y a pas de souci. On en reparle plus tard tranquillement si besoin.', tag: 'Occupé - compréhensif', tagClass: 'tag-busy' });
                 } else {
-                    responses.push({ text: 'Pas de souci, ça arrive ! On décale quand tu veux.', tag: 'Compréhensif', tagClass: 'tag-casual' });
-                    responses.push({ text: 'Aucun problème, t\'en fais pas.', tag: 'Rassurant', tagClass: 'tag-short' });
-                    responses.push({ text: 'C\'est rien du tout, t\'inquiète pas pour ça.', tag: 'Bienveillant', tagClass: 'tag-formal' });
+                    responses.push({ text: 'Mais non, t\'en fais pas du tout ! Ça arrive à tout le monde, c\'est vraiment pas un problème. L\'important c\'est que tout aille bien de ton côté. On décale quand ça t\'arrange, y a aucune urgence.', tag: 'Compréhensif', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Aucun souci, je comprends parfaitement ! C\'est la vie, ça arrive. Ne te prends pas la tête avec ça, c\'est pas du tout grave. On se replanifie ça tranquillement quand tu veux.', tag: 'Rassurant', tagClass: 'tag-casual' });
+                    responses.push({ text: 'C\'est vraiment rien, ne t\'inquiète surtout pas pour ça. Je sais que c\'est pas de ta faute et ça ne change rien entre nous. Prends le temps qu\'il te faut et on se recale dès que tu es dispo.', tag: 'Bienveillant', tagClass: 'tag-formal' });
                 }
             }
 
             if (intent === 'money') {
                 if (isBusy) {
-                    responses.push({ text: 'Noté, je regarde ça dès que je peux.', tag: 'Occupé', tagClass: 'tag-busy' });
+                    responses.push({ text: 'C\'est bien noté, je regarde ça dès que je suis un peu plus disponible. Je te fais le retour dans la journée, ne t\'inquiète pas je n\'oublie pas.', tag: 'Occupé', tagClass: 'tag-busy' });
                 } else {
                     if (amount) {
-                        responses.push({ text: 'OK pour les ' + amount + ', je te fais le virement.', tag: 'Action', tagClass: 'tag-short' });
-                        responses.push({ text: 'C\'est noté, ' + amount + '. Je m\'en occupe.', tag: 'Confirmé', tagClass: 'tag-formal' });
+                        responses.push({ text: 'Pas de souci pour les ' + amount + ', c\'est tout à fait normal. Je te fais le virement aujourd\'hui. Tu préfères par Lydia, par virement bancaire ou autre chose ? Dis-moi ce qui est le plus simple pour toi.', tag: 'Proactif', tagClass: 'tag-casual' });
+                        responses.push({ text: 'C\'est noté, ' + amount + '. Je m\'en occupe rapidement, tu n\'auras pas à attendre. Envoie-moi tes coordonnées bancaires ou ton Lydia et je te fais le transfert dans la foulée.', tag: 'Efficace', tagClass: 'tag-formal' });
                     } else {
-                        responses.push({ text: 'Pas de problème, on règle ça. Tu veux que je te fasse un virement ?', tag: 'Proactif', tagClass: 'tag-casual' });
-                        responses.push({ text: 'C\'est combien exactement ? Je te fais ça rapidement.', tag: 'Direct', tagClass: 'tag-short' });
+                        responses.push({ text: 'Pas de problème du tout, on va régler ça. Tu peux me rappeler le montant exact et comment tu préfères qu\'on fasse ? Virement, Lydia, espèces ? Je m\'adapte à ce qui t\'arrange le mieux.', tag: 'Arrangeant', tagClass: 'tag-casual' });
+                        responses.push({ text: 'Bien sûr, c\'est tout à fait normal. Dis-moi combien c\'est exactement et de quelle manière tu voudrais que je te règle, comme ça on est quittes rapidement et proprement.', tag: 'Direct', tagClass: 'tag-formal' });
                     }
                 }
             }
 
             if (intent === 'greeting') {
                 if (isBusy) {
-                    responses.push({ text: 'Salut ! Je suis un peu pris(e) là, je te reparle vite.', tag: 'Occupé', tagClass: 'tag-busy' });
+                    responses.push({ text: 'Salut ! Ça me fait plaisir d\'avoir de tes nouvelles ! Par contre je suis un peu pris(e) là, je te recontacte dès que j\'ai un moment pour qu\'on puisse discuter tranquillement.', tag: 'Occupé', tagClass: 'tag-busy' });
                 } else {
-                    responses.push({ text: 'Salut ! Ça fait plaisir, comment tu vas ?', tag: 'Chaleureux', tagClass: 'tag-casual' });
-                    responses.push({ text: 'Hey ! Quoi de beau ?', tag: 'Décontracté', tagClass: 'tag-casual' });
-                    responses.push({ text: 'Coucou ! Tout va bien ?', tag: 'Amical', tagClass: 'tag-short' });
+                    responses.push({ text: 'Salut ! Ça fait super plaisir d\'avoir de tes nouvelles ! Comment tu vas ? Ça fait un petit moment, raconte-moi un peu ce que tu deviens !', tag: 'Chaleureux', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Hey, coucou ! Trop contente(e) de te lire ! Comment ça va de ton côté ? J\'espère que tout se passe bien pour toi. Quoi de neuf ?', tag: 'Amical', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Bonjour ! Quel plaisir d\'avoir de tes nouvelles, ça faisait longtemps ! J\'espère que tu vas bien et que tout roule pour toi. Comment va la vie ?', tag: 'Poli', tagClass: 'tag-formal' });
                 }
             }
 
             if (intent === 'question') {
                 if (isBusy) {
-                    responses.push({ text: 'Bonne question ! Je te réponds dès que j\'ai 5 minutes.', tag: 'Occupé', tagClass: 'tag-busy' });
-                    responses.push({ text: 'Je regarde ça et je reviens vers toi.', tag: 'Occupé - court', tagClass: 'tag-busy' });
+                    responses.push({ text: 'C\'est une bonne question ! Je suis un peu pris(e) là mais je prends le temps de te répondre correctement dès que j\'ai 5 minutes. Je ne veux pas te répondre à la va-vite.', tag: 'Occupé', tagClass: 'tag-busy' });
+                    responses.push({ text: 'Je vois ta question et je veux te faire une réponse complète. Laisse-moi un petit moment, je reviens vers toi avec tous les détails dès que je me libère.', tag: 'Occupé - attentionné', tagClass: 'tag-busy' });
                 } else {
-                    responses.push({ text: 'Bonne question, laisse-moi vérifier et je te dis.', tag: 'Réfléchi', tagClass: 'tag-formal' });
-                    responses.push({ text: 'Oui ! Tu veux que je t\'explique en détail ?', tag: 'Affirmatif', tagClass: 'tag-casual' });
-                    responses.push({ text: 'Hmm je suis pas sûr(e), je me renseigne.', tag: 'Honnête', tagClass: 'tag-formal' });
+                    responses.push({ text: 'Très bonne question ! Laisse-moi vérifier ça de mon côté et je te fais un retour complet. Je veux être sûr(e) de te donner la bonne info. Je te dis ça très vite.', tag: 'Réfléchi', tagClass: 'tag-formal' });
+                    responses.push({ text: 'Oui bien sûr ! Je peux t\'expliquer ça en détail si tu veux. C\'est un sujet que je connais plutôt bien. Tu préfères qu\'on en parle par message ou de vive voix ?', tag: 'Affirmatif', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Hmm, bonne question, je suis pas totalement sûr(e) de la réponse là comme ça. Laisse-moi me renseigner un peu et je te reviens avec une réponse fiable plutôt que de te dire une bêtise.', tag: 'Honnête', tagClass: 'tag-formal' });
                 }
             }
 
             if (intent === 'generic') {
                 if (isBusy) {
-                    responses.push({ text: 'Bien reçu ! Je suis un peu occupé(e), je te réponds mieux tout à l\'heure.', tag: 'Occupé', tagClass: 'tag-busy' });
-                    responses.push({ text: 'OK noté, je reviens vers toi dès que je peux.', tag: 'Occupé - court', tagClass: 'tag-busy' });
+                    responses.push({ text: 'Merci pour ton message, c\'est bien reçu ! Je suis un peu occupé(e) en ce moment mais je te réponds plus en détail dès que je me libère. Promis je ne t\'oublie pas !', tag: 'Occupé', tagClass: 'tag-busy' });
+                    responses.push({ text: 'Bien noté, merci de m\'avoir prévenu(e) ! Je suis un peu sous l\'eau là mais je reviens vers toi dès que possible pour en discuter plus tranquillement.', tag: 'Occupé - attentionné', tagClass: 'tag-busy' });
                 } else {
-                    responses.push({ text: 'D\'accord, je note !', tag: 'Court', tagClass: 'tag-short' });
-                    responses.push({ text: 'Bien reçu, merci de me prévenir.', tag: 'Poli', tagClass: 'tag-formal' });
-                    responses.push({ text: 'OK, tiens-moi au courant !', tag: 'Décontracté', tagClass: 'tag-casual' });
+                    responses.push({ text: 'D\'accord, merci de m\'en informer ! C\'est bien noté de mon côté. N\'hésite pas à me tenir au courant si jamais il y a du nouveau ou si tu as besoin de quoi que ce soit.', tag: 'Poli', tagClass: 'tag-formal' });
+                    responses.push({ text: 'Bien reçu, merci pour l\'info ! Je prends note. Si tu as besoin d\'en reparler ou si tu veux qu\'on en discute plus en détail, fais-moi signe, je suis disponible.', tag: 'Attentionné', tagClass: 'tag-casual' });
+                    responses.push({ text: 'OK, c\'est noté ! Merci de me prévenir, j\'apprécie. Tiens-moi au courant de la suite et n\'hésite vraiment pas si je peux faire quoi que ce soit pour aider.', tag: 'Décontracté', tagClass: 'tag-casual' });
                 }
             }
         }
