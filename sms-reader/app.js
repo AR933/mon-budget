@@ -27,194 +27,288 @@
     var modalSend = document.getElementById('modalSend');
     var toast = document.getElementById('toast');
 
-    // --- Catégories de messages et mots-clés ---
-    var messagePatterns = {
-        greeting: {
-            keywords: ['salut', 'bonjour', 'coucou', 'hello', 'hey', 'bonsoir', 'yo', 'wesh', 'slt', 'bjr', 'cc'],
-            label: 'Salutation'
-        },
-        question: {
-            keywords: ['?', 'est-ce que', 'comment', 'pourquoi', 'quand', 'combien', 'qui', 'quoi', 'quel', 'quelle'],
-            label: 'Question'
-        },
-        invitation: {
-            keywords: ['dîner', 'diner', 'manger', 'boire', 'sortir', 'venir', 'rejoindre', 'soirée', 'soiree', 'fête', 'fete', 'apéro', 'apero', 'resto', 'restaurant', 'bar', 'ciné', 'cine', 'cinéma', 'cinema', 'on se voit', 'tu viens', 'ça te dit', 'ca te dit', 'rendez-vous', 'rdv'],
-            label: 'Invitation'
-        },
-        meetup: {
-            keywords: ['quand', 'heure', 'rendez-vous', 'rdv', 'retrouver', 'rejoindre', 'à quelle heure', 'demain', 'ce soir', 'samedi', 'dimanche', 'week-end', 'weekend', 'disponible', 'dispo', 'libre'],
-            label: 'Rendez-vous'
-        },
-        urgent: {
-            keywords: ['urgent', 'urgence', 'vite', 'rapidement', 'asap', 'important', 'immédiatement', 'immediatement', 'tout de suite', 'appelle', 'rappelle', 'stp', 'svp', 'besoin'],
-            label: 'Urgent'
-        },
-        thanks: {
-            keywords: ['merci', 'remercie', 'merci beaucoup', 'top', 'parfait', 'super', 'génial', 'genial', 'nickel', 'cool', 'trop bien'],
-            label: 'Remerciement'
-        },
-        news: {
-            keywords: ['comment ça va', 'comment ca va', 'ça va', 'ca va', 'quoi de neuf', 'nouvelles', 'la forme', 'tu vas bien', 'comment tu vas', 'comment vas-tu'],
-            label: 'Nouvelles'
-        },
-        favor: {
-            keywords: ['peux-tu', 'pourrais-tu', 'tu peux', 'tu pourrais', 'aide', 'aider', 'service', 'besoin de', 'prêter', 'preter', 'emprunter', 'donner un coup de main'],
-            label: 'Demande'
-        },
-        confirmation: {
-            keywords: ['ok', 'oui', 'd\'accord', 'entendu', 'ça marche', 'ca marche', 'c\'est noté', 'noté', 'note', 'bien reçu', 'bien recu', 'compris', 'validé', 'valide', 'confirme'],
-            label: 'Confirmation'
-        },
-        apology: {
-            keywords: ['désolé', 'desole', 'pardon', 'excuse', 'excuses', 'navré', 'navre', 'je regrette', 'pas pu', 'retard'],
-            label: 'Excuse'
-        },
-        money: {
-            keywords: ['argent', 'euros', '€', 'payer', 'rembourser', 'dette', 'virement', 'transfert', 'combien je te dois', 'tu me dois', 'prix', 'coût', 'cout'],
-            label: 'Argent'
-        }
-    };
+    // =========================================================================
+    // MOTEUR D'ANALYSE INTELLIGENT
+    // =========================================================================
 
-    // --- Réponses disponibles par catégorie et mode ---
-    var responseTemplates = {
-        greeting: {
-            available: [
-                { text: 'Salut ! Comment ça va ?', tag: 'Décontracté', tagClass: 'tag-casual' },
-                { text: 'Bonjour ! Tout va bien de mon côté, et toi ?', tag: 'Poli', tagClass: 'tag-formal' },
-                { text: 'Hey ! Quoi de neuf ?', tag: 'Amical', tagClass: 'tag-casual' }
-            ],
-            busy: [
-                { text: 'Salut ! Je suis un peu occupé là, je te recontacte dès que possible.', tag: 'Occupé', tagClass: 'tag-busy' },
-                { text: 'Hello ! Je ne suis pas trop dispo pour le moment, on se parle plus tard ?', tag: 'Occupé', tagClass: 'tag-busy' }
-            ]
-        },
-        question: {
-            available: [
-                { text: 'Bonne question ! Laisse-moi vérifier et je te dis ça.', tag: 'Poli', tagClass: 'tag-formal' },
-                { text: 'Je regarde ça et je te tiens au courant.', tag: 'Décontracté', tagClass: 'tag-casual' },
-                { text: 'Oui, bien sûr ! Tu veux plus de détails ?', tag: 'Court', tagClass: 'tag-short' }
-            ],
-            busy: [
-                { text: 'Je suis occupé pour le moment, je te réponds dès que possible.', tag: 'Occupé', tagClass: 'tag-busy' },
-                { text: 'Je regarde ça dès que je suis libre, désolé du délai !', tag: 'Occupé', tagClass: 'tag-busy' }
-            ]
-        },
-        invitation: {
-            available: [
-                { text: 'Avec plaisir ! C\'est à quelle heure et où ?', tag: 'Enthousiaste', tagClass: 'tag-casual' },
-                { text: 'Ça me tente bien ! Tu as un endroit en tête ?', tag: 'Décontracté', tagClass: 'tag-casual' },
-                { text: 'Super idée ! Je suis partant(e), dis-moi les détails.', tag: 'Poli', tagClass: 'tag-formal' },
-                { text: 'Merci pour l\'invitation, mais je ne suis pas sûr(e) de pouvoir. Je te confirme.', tag: 'Prudent', tagClass: 'tag-formal' }
-            ],
-            busy: [
-                { text: 'C\'est gentil mais je suis pris(e) en ce moment. On remet ça ?', tag: 'Occupé', tagClass: 'tag-busy' },
-                { text: 'J\'aurais adoré mais je ne suis pas disponible. Une prochaine fois ?', tag: 'Occupé', tagClass: 'tag-busy' },
-                { text: 'Désolé(e), pas possible pour moi cette fois-ci !', tag: 'Court', tagClass: 'tag-busy' }
-            ]
-        },
-        meetup: {
-            available: [
-                { text: 'Je suis dispo ! Dis-moi l\'heure et le lieu.', tag: 'Décontracté', tagClass: 'tag-casual' },
-                { text: 'Ça marche pour moi. On se retrouve où ?', tag: 'Court', tagClass: 'tag-short' },
-                { text: 'Parfait, c\'est noté ! À tout à l\'heure.', tag: 'Poli', tagClass: 'tag-formal' }
-            ],
-            busy: [
-                { text: 'Je ne suis pas libre pour le moment, je te dis dès que je me libère.', tag: 'Occupé', tagClass: 'tag-busy' },
-                { text: 'Pas dispo là, on décale ?', tag: 'Court', tagClass: 'tag-busy' }
-            ]
-        },
-        urgent: {
-            available: [
-                { text: 'J\'ai vu ton message, je m\'en occupe tout de suite.', tag: 'Réactif', tagClass: 'tag-formal' },
-                { text: 'C\'est noté, je fais au plus vite !', tag: 'Court', tagClass: 'tag-short' },
-                { text: 'Je suis dessus. Je te tiens informé(e).', tag: 'Poli', tagClass: 'tag-formal' }
-            ],
-            busy: [
-                { text: 'J\'ai bien noté l\'urgence. Je fais mon possible pour regarder ça rapidement.', tag: 'Occupé', tagClass: 'tag-busy' },
-                { text: 'Je suis occupé mais je vois que c\'est urgent. Je reviens vers toi dès que possible.', tag: 'Occupé', tagClass: 'tag-busy' }
-            ]
-        },
-        thanks: {
-            available: [
-                { text: 'De rien, avec plaisir !', tag: 'Court', tagClass: 'tag-short' },
-                { text: 'Pas de quoi, c\'est normal !', tag: 'Décontracté', tagClass: 'tag-casual' },
-                { text: 'Je t\'en prie, n\'hésite pas si tu as besoin d\'autre chose.', tag: 'Poli', tagClass: 'tag-formal' }
-            ],
-            busy: [
-                { text: 'De rien !', tag: 'Court', tagClass: 'tag-busy' },
-                { text: 'Pas de souci !', tag: 'Court', tagClass: 'tag-busy' }
-            ]
-        },
-        news: {
-            available: [
-                { text: 'Ça va bien merci ! Et toi, quoi de beau ?', tag: 'Décontracté', tagClass: 'tag-casual' },
-                { text: 'Très bien, merci de demander ! La forme et toi ?', tag: 'Poli', tagClass: 'tag-formal' },
-                { text: 'Tranquille ! Quoi de neuf de ton côté ?', tag: 'Amical', tagClass: 'tag-casual' }
-            ],
-            busy: [
-                { text: 'Ça va mais un peu débordé(e) ! On se reparle bientôt ?', tag: 'Occupé', tagClass: 'tag-busy' },
-                { text: 'Bien mais très occupé(e) là, je te recontacte !', tag: 'Court', tagClass: 'tag-busy' }
-            ]
-        },
-        favor: {
-            available: [
-                { text: 'Bien sûr, dis-moi comment je peux t\'aider.', tag: 'Poli', tagClass: 'tag-formal' },
-                { text: 'Pas de problème ! C\'est quoi exactement ?', tag: 'Décontracté', tagClass: 'tag-casual' },
-                { text: 'Avec plaisir, je regarde ça.', tag: 'Court', tagClass: 'tag-short' }
-            ],
-            busy: [
-                { text: 'Je voudrais bien t\'aider mais je suis pris(e) là. Je peux regarder ça plus tard ?', tag: 'Occupé', tagClass: 'tag-busy' },
-                { text: 'Désolé(e), pas dispo tout de suite. Je te reviens là-dessus.', tag: 'Occupé', tagClass: 'tag-busy' }
-            ]
-        },
-        confirmation: {
-            available: [
-                { text: 'Parfait, c\'est noté !', tag: 'Court', tagClass: 'tag-short' },
-                { text: 'Super, merci pour la confirmation !', tag: 'Poli', tagClass: 'tag-formal' },
-                { text: 'Top ! À bientôt alors.', tag: 'Décontracté', tagClass: 'tag-casual' }
-            ],
-            busy: [
-                { text: 'Bien reçu, merci !', tag: 'Court', tagClass: 'tag-busy' },
-                { text: 'OK noté !', tag: 'Court', tagClass: 'tag-busy' }
-            ]
-        },
-        apology: {
-            available: [
-                { text: 'Pas de souci, ne t\'inquiète pas !', tag: 'Décontracté', tagClass: 'tag-casual' },
-                { text: 'Ce n\'est rien, pas de problème.', tag: 'Poli', tagClass: 'tag-formal' },
-                { text: 'T\'inquiète, c\'est pas grave !', tag: 'Amical', tagClass: 'tag-casual' }
-            ],
-            busy: [
-                { text: 'Pas de souci ! On en reparle plus tard.', tag: 'Occupé', tagClass: 'tag-busy' },
-                { text: 'C\'est rien, t\'inquiète.', tag: 'Court', tagClass: 'tag-busy' }
-            ]
-        },
-        money: {
-            available: [
-                { text: 'Pas de problème, on règle ça quand tu veux.', tag: 'Décontracté', tagClass: 'tag-casual' },
-                { text: 'D\'accord, je regarde ça et je te fais un retour.', tag: 'Poli', tagClass: 'tag-formal' },
-                { text: 'C\'est noté, merci de me le rappeler.', tag: 'Court', tagClass: 'tag-short' }
-            ],
-            busy: [
-                { text: 'Bien noté, je regarde ça dès que je suis dispo.', tag: 'Occupé', tagClass: 'tag-busy' },
-                { text: 'OK je m\'en occupe plus tard.', tag: 'Court', tagClass: 'tag-busy' }
-            ]
-        },
-        generic: {
-            available: [
-                { text: 'Merci pour ton message ! Je te réponds dès que possible.', tag: 'Poli', tagClass: 'tag-formal' },
-                { text: 'Bien reçu, je reviens vers toi.', tag: 'Court', tagClass: 'tag-short' },
-                { text: 'OK, je note. On en reparle !', tag: 'Décontracté', tagClass: 'tag-casual' }
-            ],
-            busy: [
-                { text: 'Je suis occupé(e) pour le moment, je te réponds dès que je peux.', tag: 'Occupé', tagClass: 'tag-busy' },
-                { text: 'Pas dispo là, je reviens vers toi rapidement.', tag: 'Court', tagClass: 'tag-busy' },
-                { text: 'Bien reçu ! Je suis en plein truc, je te recontacte.', tag: 'Occupé', tagClass: 'tag-busy' }
-            ]
-        }
-    };
+    // Détecte les intentions dans le message (plusieurs possibles)
+    function detectIntents(text) {
+        var lower = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        var original = text.toLowerCase();
+        var intents = [];
 
-    // --- Fonctions utilitaires ---
+        // --- Question sur la disponibilité / Invitation ---
+        if (/\b(dispo(nible)?|libre|occupe|tu (peux|pourrais)|ca te (dit|tente)|tu (veux|voudrais|viendrais|viendras)|on se (voit|retrouve|rejoint)|viens?)\b/.test(lower) ||
+            /\b(sortir|diner|manger|boire un (verre|coup)|apero|resto|bar|cine(ma)?|soiree|fete)\b/.test(lower)) {
+            intents.push('invitation');
+        }
+
+        // --- Demande d'heure / lieu / RDV ---
+        if (/\b(a quelle heure|quel(le)? heure|ou (on|ca)|quel endroit|on se retrouve ou|rdv|rendez.?vous)\b/.test(lower) ||
+            /\b(quand est.ce|c'?est quand|a quand|pour quand)\b/.test(lower)) {
+            intents.push('logistics');
+        }
+
+        // --- Demande de service / faveur ---
+        if (/\b(tu (peux|pourrais) me|peux.tu|pourrais.tu|j'?aurais besoin|tu me|rendre (un )?service|coup de main|aider|aide.moi)\b/.test(lower) ||
+            /\b(preter|emprunter|envoyer|ramener|deposer|recuperer|chercher|acheter|passer me)\b/.test(lower)) {
+            intents.push('favor');
+        }
+
+        // --- Urgence ---
+        if (/\b(urgent|urgence|vite|rapidement|asap|immediatement|tout de suite|appelle.moi|rappelle.moi|le plus (tot|vite))\b/.test(lower) ||
+            /!{2,}/.test(text) ||
+            /\b(tres important|c'?est important|important)\b/.test(lower)) {
+            intents.push('urgent');
+        }
+
+        // --- Nouvelles / Comment ça va ---
+        if (/\b((comment )?((ca|tu) va(s)?)|la forme|quoi de (neuf|beau|bon)|comment (tu )?vas.tu)\b/.test(lower) ||
+            /\b(t'?es? ou|tu fais quoi|tu (es|fais) quoi)\b/.test(lower)) {
+            intents.push('howAreYou');
+        }
+
+        // --- Remerciement ---
+        if (/\b(merci|remercie|merci (beaucoup|bcp|infiniment|mille fois))\b/.test(lower)) {
+            intents.push('thanks');
+        }
+
+        // --- Confirmation / Accord ---
+        if (/^(ok|oui|d'?accord|entendu|ca marche|c'?est (note|bon|parfait)|compris|top|parfait|nickel|super|genial|cool|bien recu|valide|confirme|yep|yes|ouais|carrément|grave)[\s!.]*$/i.test(lower.trim())) {
+            intents.push('confirmation');
+        }
+
+        // --- Excuse / Annulation ---
+        if (/\b(desole|pardon|excuse|navre|je (peux|pourrai) (pas|plus)|annul|reporter|remettre|decaler|empeche|retard|en retard)\b/.test(lower)) {
+            intents.push('apology');
+        }
+
+        // --- Argent ---
+        if (/\b(argent|euros?|€|\d+\s*€|payer|rembourser|dette|virement|transfert|combien (je |tu )?te dois|tu me dois|prix|cout|paypal|lydia|revolut)\b/.test(lower)) {
+            intents.push('money');
+        }
+
+        // --- Salutation simple ---
+        if (/^(salut|bonjour|bonsoir|coucou|hello|hey|yo|wesh|slt|bjr|cc|re)[\s!.,]*$/i.test(lower.trim()) ||
+            /^(salut|bonjour|bonsoir|coucou|hello|hey|yo|cc)[\s!,]/.test(lower.trim())) {
+            intents.push('greeting');
+        }
+
+        // --- Question générale (contient ?) ---
+        if (original.indexOf('?') !== -1 && intents.length === 0) {
+            intents.push('question');
+        }
+
+        // --- Rien détecté ---
+        if (intents.length === 0) {
+            intents.push('generic');
+        }
+
+        return intents;
+    }
+
+    // Extrait des infos contextuelles du message
+    function extractContext(text) {
+        var lower = text.toLowerCase();
+        var ctx = {};
+
+        // Moment mentionné
+        if (/\b(ce soir|tonight)\b/i.test(lower)) ctx.when = 'ce soir';
+        else if (/\b(demain)\b/i.test(lower)) ctx.when = 'demain';
+        else if (/\b(ce week.?end|ce we)\b/i.test(lower)) ctx.when = 'ce week-end';
+        else if (/\b(samedi)\b/i.test(lower)) ctx.when = 'samedi';
+        else if (/\b(dimanche)\b/i.test(lower)) ctx.when = 'dimanche';
+        else if (/\b(lundi)\b/i.test(lower)) ctx.when = 'lundi';
+        else if (/\b(mardi)\b/i.test(lower)) ctx.when = 'mardi';
+        else if (/\b(mercredi)\b/i.test(lower)) ctx.when = 'mercredi';
+        else if (/\b(jeudi)\b/i.test(lower)) ctx.when = 'jeudi';
+        else if (/\b(vendredi)\b/i.test(lower)) ctx.when = 'vendredi';
+        else if (/\b(aujourd'?hui|auj)\b/i.test(lower)) ctx.when = "aujourd'hui";
+        else if (/\b(maintenant|la tout de suite)\b/i.test(lower)) ctx.when = 'maintenant';
+
+        // Activité mentionnée
+        if (/\b(diner|manger|resto|restaurant)\b/i.test(lower)) ctx.activity = 'manger';
+        else if (/\b(boire|verre|coup|apero|bar)\b/i.test(lower)) ctx.activity = 'boire un verre';
+        else if (/\b(cine(ma)?|film)\b/i.test(lower)) ctx.activity = 'ciné';
+        else if (/\b(soiree|fete|sortir)\b/i.test(lower)) ctx.activity = 'sortir';
+        else if (/\b(sport|foot|match|courir|run|salle)\b/i.test(lower)) ctx.activity = 'sport';
+        else if (/\b(bosser|travailler|projet|boulot)\b/i.test(lower)) ctx.activity = 'bosser';
+
+        // Montant mentionné
+        var moneyMatch = lower.match(/(\d+(?:[.,]\d+)?)\s*(?:€|euros?)/);
+        if (moneyMatch) ctx.amount = moneyMatch[1] + ' €';
+
+        // Heure mentionnée
+        var timeMatch = lower.match(/(\d{1,2})\s*[h:]\s*(\d{0,2})/);
+        if (timeMatch) ctx.time = timeMatch[1] + 'h' + (timeMatch[2] || '');
+
+        return ctx;
+    }
+
+    // Génère des réponses contextuelles et naturelles
+    function generateResponses(intents, context) {
+        var responses = [];
+        var when = context.when || '';
+        var activity = context.activity || '';
+        var amount = context.amount || '';
+        var time = context.time || '';
+
+        for (var i = 0; i < intents.length; i++) {
+            var intent = intents[i];
+
+            if (intent === 'invitation') {
+                if (isBusy) {
+                    responses.push({ text: 'Ah dommage, je suis pris(e)' + (when ? ' ' + when : '') + '. On remet ça ?', tag: 'Occupé - décline', tagClass: 'tag-busy' });
+                    responses.push({ text: 'J\'aurais bien aimé mais je ne suis pas dispo' + (when ? ' ' + when : '') + '. La prochaine fois !', tag: 'Occupé - poli', tagClass: 'tag-busy' });
+                    responses.push({ text: 'Pas possible pour moi, désolé(e) ! Tu me redis quand tu refais ça.', tag: 'Occupé - court', tagClass: 'tag-busy' });
+                } else {
+                    responses.push({ text: 'Carrément, ça me dit bien !' + (when ? ' ' + when.charAt(0).toUpperCase() + when.slice(1) + ' ça me va.' : ' Dis-moi quand.'), tag: 'Enthousiaste', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Avec plaisir !' + (activity ? ' ' + activity.charAt(0).toUpperCase() + activity.slice(1) + ', bonne idée.' : '') + (when ? ' ' + when.charAt(0).toUpperCase() + when.slice(1) + ' c\'est parfait.' : ' Tu proposes quand ?'), tag: 'Partant', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Pourquoi pas ! Faut que je vérifie' + (when ? ' pour ' + when : '') + ' mais a priori c\'est bon.', tag: 'Prudent', tagClass: 'tag-formal' });
+                    responses.push({ text: 'Bonne idée ! C\'est où et à quelle heure ?', tag: 'Direct', tagClass: 'tag-short' });
+                }
+            }
+
+            if (intent === 'logistics') {
+                if (isBusy) {
+                    responses.push({ text: 'Je regarde et je te confirme dès que je suis dispo.', tag: 'Occupé', tagClass: 'tag-busy' });
+                } else {
+                    if (time) {
+                        responses.push({ text: 'OK pour ' + time + ', ça me va !', tag: 'Confirme', tagClass: 'tag-short' });
+                        responses.push({ text: time + ' c\'est parfait pour moi. On se retrouve où ?', tag: 'Confirme + question', tagClass: 'tag-casual' });
+                    } else {
+                        responses.push({ text: 'Moi je suis flexible, dis-moi ce qui t\'arrange.', tag: 'Souple', tagClass: 'tag-casual' });
+                        responses.push({ text: 'Je te laisse choisir, ça m\'ira.', tag: 'Court', tagClass: 'tag-short' });
+                    }
+                }
+            }
+
+            if (intent === 'favor') {
+                if (isBusy) {
+                    responses.push({ text: 'Je suis un peu débordé(e) là, je peux regarder ça plus tard ?', tag: 'Occupé - reporte', tagClass: 'tag-busy' });
+                    responses.push({ text: 'Pas dispo tout de suite mais je n\'oublie pas, je te reviens là-dessus.', tag: 'Occupé - promesse', tagClass: 'tag-busy' });
+                } else {
+                    responses.push({ text: 'Bien sûr, dis-moi exactement ce qu\'il te faut.', tag: 'Serviable', tagClass: 'tag-formal' });
+                    responses.push({ text: 'Oui pas de souci ! C\'est quoi exactement ?', tag: 'Décontracté', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Ça dépend de quoi il s\'agit, explique-moi ?', tag: 'Prudent', tagClass: 'tag-formal' });
+                }
+            }
+
+            if (intent === 'urgent') {
+                if (isBusy) {
+                    responses.push({ text: 'J\'ai vu, je fais au plus vite même si je suis en plein truc.', tag: 'Occupé - prioritaire', tagClass: 'tag-busy' });
+                    responses.push({ text: 'C\'est noté. Je ne peux pas là tout de suite mais je m\'en occupe dès que possible.', tag: 'Occupé - honnête', tagClass: 'tag-busy' });
+                } else {
+                    responses.push({ text: 'OK j\'ai vu, je m\'en occupe tout de suite.', tag: 'Réactif', tagClass: 'tag-short' });
+                    responses.push({ text: 'Je suis dessus. Je te tiens au courant.', tag: 'Pro', tagClass: 'tag-formal' });
+                    responses.push({ text: 'Reçu ! T\'inquiète, je gère.', tag: 'Rassurant', tagClass: 'tag-casual' });
+                }
+            }
+
+            if (intent === 'howAreYou') {
+                if (isBusy) {
+                    responses.push({ text: 'Ça va mais bien occupé(e) ! Je te rappelle quand je souffle un peu.', tag: 'Occupé', tagClass: 'tag-busy' });
+                    responses.push({ text: 'La forme mais speed ! On se reparle vite.', tag: 'Occupé - court', tagClass: 'tag-busy' });
+                } else {
+                    responses.push({ text: 'Ça va super, et toi ? Quoi de neuf ?', tag: 'Enthousiaste', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Tranquille ! Et toi, tout roule ?', tag: 'Décontracté', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Très bien merci ! Content(e) d\'avoir de tes nouvelles.', tag: 'Chaleureux', tagClass: 'tag-formal' });
+                }
+            }
+
+            if (intent === 'thanks') {
+                if (isBusy) {
+                    responses.push({ text: 'De rien !', tag: 'Court', tagClass: 'tag-busy' });
+                } else {
+                    responses.push({ text: 'Avec plaisir ! N\'hésite pas si t\'as besoin.', tag: 'Généreux', tagClass: 'tag-casual' });
+                    responses.push({ text: 'De rien, c\'est normal !', tag: 'Simple', tagClass: 'tag-short' });
+                    responses.push({ text: 'Pas de quoi, ça m\'a fait plaisir.', tag: 'Chaleureux', tagClass: 'tag-formal' });
+                }
+            }
+
+            if (intent === 'confirmation') {
+                if (isBusy) {
+                    responses.push({ text: '👍', tag: 'Emoji', tagClass: 'tag-busy' });
+                } else {
+                    responses.push({ text: 'Parfait, c\'est noté !', tag: 'Court', tagClass: 'tag-short' });
+                    responses.push({ text: 'Top, à ' + (when || 'bientôt') + ' alors !', tag: 'Enthousiaste', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Super, hâte d\'y être !', tag: 'Content', tagClass: 'tag-casual' });
+                }
+            }
+
+            if (intent === 'apology') {
+                if (isBusy) {
+                    responses.push({ text: 'T\'inquiète, c\'est pas grave.', tag: 'Court', tagClass: 'tag-busy' });
+                } else {
+                    responses.push({ text: 'Pas de souci, ça arrive ! On décale quand tu veux.', tag: 'Compréhensif', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Aucun problème, t\'en fais pas.', tag: 'Rassurant', tagClass: 'tag-short' });
+                    responses.push({ text: 'C\'est rien du tout, t\'inquiète pas pour ça.', tag: 'Bienveillant', tagClass: 'tag-formal' });
+                }
+            }
+
+            if (intent === 'money') {
+                if (isBusy) {
+                    responses.push({ text: 'Noté, je regarde ça dès que je peux.', tag: 'Occupé', tagClass: 'tag-busy' });
+                } else {
+                    if (amount) {
+                        responses.push({ text: 'OK pour les ' + amount + ', je te fais le virement.', tag: 'Action', tagClass: 'tag-short' });
+                        responses.push({ text: 'C\'est noté, ' + amount + '. Je m\'en occupe.', tag: 'Confirmé', tagClass: 'tag-formal' });
+                    } else {
+                        responses.push({ text: 'Pas de problème, on règle ça. Tu veux que je te fasse un virement ?', tag: 'Proactif', tagClass: 'tag-casual' });
+                        responses.push({ text: 'C\'est combien exactement ? Je te fais ça rapidement.', tag: 'Direct', tagClass: 'tag-short' });
+                    }
+                }
+            }
+
+            if (intent === 'greeting') {
+                if (isBusy) {
+                    responses.push({ text: 'Salut ! Je suis un peu pris(e) là, je te reparle vite.', tag: 'Occupé', tagClass: 'tag-busy' });
+                } else {
+                    responses.push({ text: 'Salut ! Ça fait plaisir, comment tu vas ?', tag: 'Chaleureux', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Hey ! Quoi de beau ?', tag: 'Décontracté', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Coucou ! Tout va bien ?', tag: 'Amical', tagClass: 'tag-short' });
+                }
+            }
+
+            if (intent === 'question') {
+                if (isBusy) {
+                    responses.push({ text: 'Bonne question ! Je te réponds dès que j\'ai 5 minutes.', tag: 'Occupé', tagClass: 'tag-busy' });
+                    responses.push({ text: 'Je regarde ça et je reviens vers toi.', tag: 'Occupé - court', tagClass: 'tag-busy' });
+                } else {
+                    responses.push({ text: 'Bonne question, laisse-moi vérifier et je te dis.', tag: 'Réfléchi', tagClass: 'tag-formal' });
+                    responses.push({ text: 'Oui ! Tu veux que je t\'explique en détail ?', tag: 'Affirmatif', tagClass: 'tag-casual' });
+                    responses.push({ text: 'Hmm je suis pas sûr(e), je me renseigne.', tag: 'Honnête', tagClass: 'tag-formal' });
+                }
+            }
+
+            if (intent === 'generic') {
+                if (isBusy) {
+                    responses.push({ text: 'Bien reçu ! Je suis un peu occupé(e), je te réponds mieux tout à l\'heure.', tag: 'Occupé', tagClass: 'tag-busy' });
+                    responses.push({ text: 'OK noté, je reviens vers toi dès que je peux.', tag: 'Occupé - court', tagClass: 'tag-busy' });
+                } else {
+                    responses.push({ text: 'D\'accord, je note !', tag: 'Court', tagClass: 'tag-short' });
+                    responses.push({ text: 'Bien reçu, merci de me prévenir.', tag: 'Poli', tagClass: 'tag-formal' });
+                    responses.push({ text: 'OK, tiens-moi au courant !', tag: 'Décontracté', tagClass: 'tag-casual' });
+                }
+            }
+        }
+
+        // Dédupliquer et limiter à 5
+        var seen = {};
+        var unique = [];
+        for (var j = 0; j < responses.length && unique.length < 5; j++) {
+            if (!seen[responses[j].text]) {
+                seen[responses[j].text] = true;
+                unique.push(responses[j]);
+            }
+        }
+
+        return unique;
+    }
+
+    // =========================================================================
+    // INTERFACE
+    // =========================================================================
 
     function showToast(message) {
         toast.textContent = message;
@@ -238,74 +332,13 @@
 
     function formatDate(dateStr) {
         var d = new Date(dateStr);
-        var options = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
-        return d.toLocaleDateString('fr-FR', options);
+        return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
 
-    // --- Analyse du message ---
-
-    function analyzeMessage(text) {
-        var lowerText = text.toLowerCase().trim();
-        var detectedCategories = [];
-
-        // Vérifier chaque pattern
-        for (var category in messagePatterns) {
-            var pattern = messagePatterns[category];
-            for (var i = 0; i < pattern.keywords.length; i++) {
-                if (lowerText.indexOf(pattern.keywords[i]) !== -1) {
-                    detectedCategories.push(category);
-                    break;
-                }
-            }
-        }
-
-        // Si rien trouvé, catégorie générique
-        if (detectedCategories.length === 0) {
-            detectedCategories.push('generic');
-        }
-
-        return detectedCategories;
-    }
-
-    function getSuggestions(categories) {
-        var mode = isBusy ? 'busy' : 'available';
-        var suggestions = [];
-        var seen = {};
-
-        // Prioriser : urgent > invitation > meetup > favor > money > question > greeting > news > thanks > confirmation > apology > generic
-        var priority = ['urgent', 'invitation', 'meetup', 'favor', 'money', 'question', 'greeting', 'news', 'thanks', 'confirmation', 'apology', 'generic'];
-
-        // Trier les catégories par priorité
-        categories.sort(function (a, b) {
-            return priority.indexOf(a) - priority.indexOf(b);
-        });
-
-        for (var i = 0; i < categories.length; i++) {
-            var cat = categories[i];
-            var templates = responseTemplates[cat];
-            if (!templates) continue;
-
-            var responses = templates[mode] || templates.available;
-            for (var j = 0; j < responses.length; j++) {
-                if (!seen[responses[j].text] && suggestions.length < 5) {
-                    seen[responses[j].text] = true;
-                    suggestions.push(responses[j]);
-                }
-            }
-        }
-
-        // Compléter avec des réponses génériques si pas assez
-        if (suggestions.length < 3) {
-            var genericResponses = responseTemplates.generic[mode];
-            for (var k = 0; k < genericResponses.length; k++) {
-                if (!seen[genericResponses[k].text] && suggestions.length < 5) {
-                    seen[genericResponses[k].text] = true;
-                    suggestions.push(genericResponses[k]);
-                }
-            }
-        }
-
-        return suggestions;
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     // --- Affichage des suggestions ---
@@ -318,7 +351,7 @@
                 var card = document.createElement('div');
                 card.className = 'suggestion-card' + (isBusy ? ' busy-response' : '');
                 card.innerHTML =
-                    '<span class="suggestion-tag ' + suggestion.tagClass + '">' + suggestion.tag + '</span>' +
+                    '<span class="suggestion-tag ' + suggestion.tagClass + '">' + escapeHtml(suggestion.tag) + '</span>' +
                     '<p class="suggestion-text">' + escapeHtml(suggestion.text) + '</p>' +
                     '<p class="suggestion-action">Appuyer pour sélectionner</p>';
 
@@ -332,12 +365,6 @@
 
         suggestionsSection.style.display = 'block';
         suggestionsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    function escapeHtml(text) {
-        var div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
     }
 
     // --- Modal ---
@@ -378,7 +405,6 @@
             wasBusy: isBusy
         });
 
-        // Garder max 50 entrées
         if (history.length > 50) {
             history = history.slice(0, 50);
         }
@@ -444,8 +470,9 @@
 
         // Re-analyser si un message est présent
         if (smsInput.value.trim()) {
-            var categories = analyzeMessage(smsInput.value);
-            var suggestions = getSuggestions(categories);
+            var intents = detectIntents(smsInput.value);
+            var context = extractContext(smsInput.value);
+            var suggestions = generateResponses(intents, context);
             renderSuggestions(suggestions);
         }
     });
@@ -458,12 +485,12 @@
             return;
         }
 
-        var categories = analyzeMessage(text);
-        var suggestions = getSuggestions(categories);
+        var intents = detectIntents(text);
+        var context = extractContext(text);
+        var suggestions = generateResponses(intents, context);
         renderSuggestions(suggestions);
     });
 
-    // Analyser aussi avec Entrée
     smsInput.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -487,7 +514,6 @@
                 showToast('Réponse copiée !');
             });
         } else {
-            // Fallback pour les anciens navigateurs
             var textarea = document.createElement('textarea');
             textarea.value = selectedResponse;
             textarea.style.position = 'fixed';
