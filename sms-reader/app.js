@@ -26,6 +26,76 @@
     var modalCopy = document.getElementById('modalCopy');
     var modalSend = document.getElementById('modalSend');
     var toast = document.getElementById('toast');
+    var micBtn = document.getElementById('micBtn');
+
+    // =========================================================================
+    // RECONNAISSANCE VOCALE
+    // =========================================================================
+
+    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    var recognition = null;
+    var isRecording = false;
+
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'fr-FR';
+        recognition.continuous = false;
+        recognition.interimResults = true;
+
+        recognition.onstart = function () {
+            isRecording = true;
+            micBtn.classList.add('recording');
+            showToast('Parlez maintenant...');
+        };
+
+        recognition.onresult = function (event) {
+            var transcript = '';
+            for (var i = 0; i < event.results.length; i++) {
+                transcript += event.results[i][0].transcript;
+            }
+            smsInput.value = transcript;
+
+            // Si résultat final, lancer l'analyse automatiquement
+            if (event.results[event.results.length - 1].isFinal) {
+                setTimeout(function () {
+                    analyzeBtn.click();
+                }, 400);
+            }
+        };
+
+        recognition.onerror = function (event) {
+            isRecording = false;
+            micBtn.classList.remove('recording');
+            if (event.error === 'not-allowed') {
+                showToast('Autorisez le micro dans les paramètres');
+            } else if (event.error === 'no-speech') {
+                showToast('Aucune voix détectée, réessayez');
+            } else {
+                showToast('Erreur micro : ' + event.error);
+            }
+        };
+
+        recognition.onend = function () {
+            isRecording = false;
+            micBtn.classList.remove('recording');
+        };
+    } else {
+        // Navigateur non supporté : cacher le bouton micro
+        micBtn.style.display = 'none';
+    }
+
+    micBtn.addEventListener('click', function () {
+        if (!recognition) {
+            showToast('La reconnaissance vocale n\'est pas supportée');
+            return;
+        }
+        if (isRecording) {
+            recognition.stop();
+        } else {
+            smsInput.value = '';
+            recognition.start();
+        }
+    });
 
     // =========================================================================
     // MOTEUR D'ANALYSE INTELLIGENT

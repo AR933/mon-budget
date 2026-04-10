@@ -141,11 +141,16 @@ body {
     letter-spacing: 0.03em;
 }
 
+.textarea-wrapper {
+    position: relative;
+}
+
 .sms-textarea {
     width: 100%;
     border: 2px solid var(--border);
     border-radius: var(--radius-sm);
     padding: 0.85rem;
+    padding-right: 3.2rem;
     font-size: 1rem;
     font-family: inherit;
     resize: vertical;
@@ -163,6 +168,49 @@ body {
 
 .sms-textarea::placeholder {
     color: #9aa0a6;
+}
+
+/* ===== Microphone Button ===== */
+.mic-btn {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: var(--bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mic-btn:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.mic-btn.recording {
+    background: var(--danger);
+    color: white;
+    animation: pulse 1.2s infinite;
+}
+
+.mic-btn.recording .mic-icon {
+    display: none;
+}
+
+.mic-btn.recording .mic-icon-active {
+    display: block !important;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(234, 67, 53, 0.4); }
+    50% { transform: scale(1.08); box-shadow: 0 0 0 8px rgba(234, 67, 53, 0); }
 }
 
 .input-actions {
