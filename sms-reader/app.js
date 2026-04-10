@@ -6,6 +6,7 @@
     // --- Constantes ---
     var STORAGE_KEY = 'sms_assistant_history';
     var STATUS_KEY = 'sms_assistant_busy';
+    var API_KEY_STORAGE = 'sms_assistant_api_key';
 
     // --- État ---
     var isBusy = JSON.parse(localStorage.getItem(STATUS_KEY) || 'false');
@@ -27,6 +28,139 @@
     var modalSend = document.getElementById('modalSend');
     var toast = document.getElementById('toast');
     var micBtn = document.getElementById('micBtn');
+    var settingsBtn = document.getElementById('settingsBtn');
+    var settingsPanel = document.getElementById('settingsPanel');
+    var apiKeyInput = document.getElementById('apiKeyInput');
+    var saveApiKeyBtn = document.getElementById('saveApiKey');
+    var clearApiKeyBtn = document.getElementById('clearApiKey');
+    var toggleKeyVisibility = document.getElementById('toggleKeyVisibility');
+    var aiStatus = document.getElementById('aiStatus');
+
+    // =========================================================================
+    // PARAMÈTRES & API CLAUDE
+    // =========================================================================
+
+    function getApiKey() {
+        return localStorage.getItem(API_KEY_STORAGE) || '';
+    }
+
+    function updateAiStatus() {
+        var key = getApiKey();
+        if (key) {
+            aiStatus.textContent = 'IA Claude activée — les réponses seront générées par l\'intelligence artificielle.';
+            aiStatus.className = 'ai-status active';
+        } else {
+            aiStatus.textContent = 'Mode local — réponses pré-écrites. Ajoutez une clé API pour des réponses IA.';
+            aiStatus.className = 'ai-status inactive';
+        }
+    }
+
+    settingsBtn.addEventListener('click', function () {
+        var isVisible = settingsPanel.style.display !== 'none';
+        settingsPanel.style.display = isVisible ? 'none' : 'block';
+        if (!isVisible) {
+            var key = getApiKey();
+            apiKeyInput.value = key;
+            updateAiStatus();
+        }
+    });
+
+    saveApiKeyBtn.addEventListener('click', function () {
+        var key = apiKeyInput.value.trim();
+        if (!key) {
+            showToast('Entrez une clé API');
+            return;
+        }
+        if (!key.startsWith('sk-ant-')) {
+            showToast('La clé doit commencer par sk-ant-');
+            return;
+        }
+        localStorage.setItem(API_KEY_STORAGE, key);
+        updateAiStatus();
+        showToast('Clé API enregistrée !');
+    });
+
+    clearApiKeyBtn.addEventListener('click', function () {
+        localStorage.removeItem(API_KEY_STORAGE);
+        apiKeyInput.value = '';
+        updateAiStatus();
+        showToast('Clé API supprimée');
+    });
+
+    toggleKeyVisibility.addEventListener('click', function () {
+        apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
+    });
+
+    // --- Appel API Claude ---
+
+    function callClaudeAPI(smsText) {
+        var apiKey = getApiKey();
+        if (!apiKey) return Promise.resolve(null);
+
+        var modeText = isBusy ? 'occupé(e) et ne peut pas répondre longuement' : 'disponible et détendu(e)';
+
+        var systemPrompt = 'Tu es un assistant qui génère des suggestions de réponses SMS en français. ' +
+            'L\'utilisateur est actuellement ' + modeText + '. ' +
+            'Génère exactement 4 réponses différentes au SMS reçu. Chaque réponse doit avoir un ton différent. ' +
+            'Réponds UNIQUEMENT au format JSON suivant, sans aucun texte avant ou après :\n' +
+            '[{"tag":"Ton","text":"La réponse"},{"tag":"Ton","text":"La réponse"},{"tag":"Ton","text":"La réponse"},{"tag":"Ton","text":"La réponse"}]\n' +
+            'Les tags doivent décrire le ton : Chaleureux, Décontracté, Formel, Direct, Drôle, Enthousiaste, Prudent, Occupé, etc.\n' +
+            'Les réponses doivent être naturelles, de 2 à 4 phrases, comme un vrai SMS entre amis ou collègues.';
+
+        return fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+                'anthropic-dangerous-direct-browser-access': 'true'
+            },
+            body: JSON.stringify({
+                model: 'claude-haiku-4-5',
+                max_tokens: 1024,
+                system: systemPrompt,
+                messages: [
+                    { role: 'user', content: 'SMS reçu : "' + smsText + '"' }
+                ]
+            })
+        })
+        .then(function (res) {
+            if (!res.ok) {
+                return res.json().then(function (err) {
+                    throw new Error(err.error ? err.error.message : 'Erreur API');
+                });
+            }
+            return res.json();
+        })
+        .then(function (data) {
+            var textBlock = null;
+            for (var i = 0; i < data.content.length; i++) {
+                if (data.content[i].type === 'text') {
+                    textBlock = data.content[i].text;
+                    break;
+                }
+            }
+            if (!textBlock) return null;
+
+            // Extraire le JSON de la réponse
+            var jsonMatch = textBlock.match(/\[[\s\S]*\]/);
+            if (!jsonMatch) return null;
+
+            var suggestions = JSON.parse(jsonMatch[0]);
+            var tagClasses = ['tag-casual', 'tag-formal', 'tag-short', 'tag-busy'];
+            return suggestions.map(function (s, idx) {
+                return {
+                    text: s.text,
+                    tag: (isBusy ? 'IA Occupé' : 'IA') + ' — ' + s.tag,
+                    tagClass: isBusy ? 'tag-busy' : tagClasses[idx % tagClasses.length]
+                };
+            });
+        })
+        .catch(function (err) {
+            console.error('Claude API error:', err);
+            return null;
+        });
+    }
 
     // =========================================================================
     // RECONNAISSANCE VOCALE
@@ -542,10 +676,7 @@
 
         // Re-analyser si un message est présent
         if (smsInput.value.trim()) {
-            var intents = detectIntents(smsInput.value);
-            var context = extractContext(smsInput.value);
-            var suggestions = generateResponses(intents, context);
-            renderSuggestions(suggestions);
+            analyzeBtn.click();
         }
     });
 
@@ -557,10 +688,38 @@
             return;
         }
 
-        var intents = detectIntents(text);
-        var context = extractContext(text);
-        var suggestions = generateResponses(intents, context);
-        renderSuggestions(suggestions);
+        var apiKey = getApiKey();
+
+        if (apiKey) {
+            // Mode IA : afficher le loader puis appeler Claude
+            suggestionsList.innerHTML =
+                '<div class="loading-spinner">' +
+                    '<div class="spinner"></div>' +
+                    '<span class="loading-text">Claude réfléchit...</span>' +
+                '</div>';
+            suggestionsSection.style.display = 'block';
+            analyzeBtn.disabled = true;
+
+            callClaudeAPI(text).then(function (aiSuggestions) {
+                analyzeBtn.disabled = false;
+                if (aiSuggestions && aiSuggestions.length > 0) {
+                    renderSuggestions(aiSuggestions);
+                } else {
+                    // Fallback local si l'API echoue
+                    showToast('IA indisponible, mode local');
+                    var intents = detectIntents(text);
+                    var context = extractContext(text);
+                    var suggestions = generateResponses(intents, context);
+                    renderSuggestions(suggestions);
+                }
+            });
+        } else {
+            // Mode local
+            var intents = detectIntents(text);
+            var context = extractContext(text);
+            var suggestions = generateResponses(intents, context);
+            renderSuggestions(suggestions);
+        }
     });
 
     smsInput.addEventListener('keydown', function (e) {

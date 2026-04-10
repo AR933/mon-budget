@@ -28,8 +28,35 @@
                         <span class="toggle-knob"></span>
                     </button>
                 </div>
+                <button class="settings-btn" id="settingsBtn" aria-label="Paramètres">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.6 3.6 0 0112 15.6z"/>
+                    </svg>
+                </button>
             </div>
         </header>
+
+        <!-- Panneau paramètres -->
+        <section class="settings-panel" id="settingsPanel" style="display: none;">
+            <div class="settings-card">
+                <h2 class="settings-title">Paramètres IA</h2>
+                <p class="settings-desc">Entrez votre clé API Anthropic pour obtenir des réponses générées par Claude (IA). Sans clé, le moteur local est utilisé.</p>
+                <label for="apiKeyInput" class="input-label">Clé API Anthropic</label>
+                <div class="api-key-wrapper">
+                    <input type="password" id="apiKeyInput" class="api-key-input" placeholder="sk-ant-api03-...">
+                    <button class="btn-icon" id="toggleKeyVisibility" aria-label="Afficher la clé">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="settings-actions">
+                    <button class="btn btn-primary" id="saveApiKey">Enregistrer</button>
+                    <button class="btn btn-secondary" id="clearApiKey">Supprimer la clé</button>
+                </div>
+                <div class="ai-status" id="aiStatus"></div>
+            </div>
+        </section>
 
         <!-- Zone de saisie du message -->
         <section class="input-section">

@@ -1,5 +1,5 @@
 // Service Worker pour SMS Assistant - Mode hors-ligne
-var CACHE_NAME = 'sms-assistant-v3';
+var CACHE_NAME = 'sms-assistant-v4';
 var ASSETS = [
     './',
     './index.html',
