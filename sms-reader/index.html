@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="Assistant SMS intelligent - Lisez vos messages et obtenez des suggestions de réponses automatiques">
+    <meta name="theme-color" content="#1a73e8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>SMS Assistant</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <h1>SMS Assistant</h1>
+            </div>
+            <div class="header-right">
+                <div class="status-toggle" id="statusToggle">
+                    <span class="status-label" id="statusLabel">Disponible</span>
+                    <button class="toggle-btn" id="toggleBtn" aria-label="Basculer le mode occupé">
+                        <span class="toggle-knob"></span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Zone de saisie du message -->
+        <section class="input-section">
+            <div class="input-card">
+                <label for="smsInput" class="input-label">Collez ou tapez le SMS reçu</label>
+                <textarea
+                    id="smsInput"
+                    class="sms-textarea"
+                    placeholder="Ex: Salut, tu es disponible ce soir pour dîner ?"
+                    rows="4"
+                ></textarea>
+                <div class="input-actions">
+                    <input type="tel" id="phoneNumber" class="phone-input" placeholder="N° de téléphone (optionnel)">
+                    <button class="btn btn-primary" id="analyzeBtn">Analyser</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Suggestions de réponses -->
+        <section class="suggestions-section" id="suggestionsSection" style="display: none;">
+            <h2 class="section-title">Suggestions de réponses</h2>
+            <div class="suggestions-list" id="suggestionsList"></div>
+        </section>
+
+        <!-- Historique -->
+        <section class="history-section">
+            <div class="history-header">
+                <h2 class="section-title">Historique</h2>
+                <button class="btn btn-text" id="clearHistoryBtn">Effacer</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <p class="empty-state">Aucun message analysé pour le moment.</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal de confirmation d'envoi -->
+    <div class="modal-overlay" id="modalOverlay" style="display: none;">
+        <div class="modal">
+            <h3 class="modal-title">Envoyer la réponse ?</h3>
+            <p class="modal-message" id="modalMessage"></p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="modalCancel">Annuler</button>
+                <button class="btn btn-primary" id="modalCopy">Copier</button>
+                <a class="btn btn-success" id="modalSend" href="#">Envoyer par SMS</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js');
+        }
+    </script>
+</body>
+</html>
